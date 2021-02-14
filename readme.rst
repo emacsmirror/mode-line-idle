@@ -4,8 +4,8 @@ Mode Line Idle
 
 Simple delayed text evaluation for the mode-line.
 
-This package provides a convenient way to defer the evaluation that can be integrated into existing mode-line's
-without requiring a minor mode or configuration.
+This package provides a convenient way to defer text evaluation in a way that can be
+easily integrated into existing mode-line's without requiring a minor mode or configuration.
 
 Available via `melpa <https://melpa.org/#/mode-line-idle>`__.
 
