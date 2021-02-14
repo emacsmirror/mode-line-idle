@@ -7,6 +7,8 @@ Simple delayed text evaluation for the mode-line.
 This package provides a convenient way to defer the evaluation that can be integrated into existing mode-line's
 without requiring a minor mode or configuration.
 
+Available via `melpa <https://melpa.org/#/mode-line-idle>`__.
+
 
 Motivation
 ==========
@@ -81,15 +83,9 @@ Two timers, with different faces.
 Installation
 ============
 
-This package can be used with ``straight``
+This package can be installed from melpa.
 
 .. code-block:: elisp
 
    (use-package mode-line-idle
-     :commands (mode-line-idle)
-
-     :straight
-     (mode-line-idle
-       :type git
-       :host gitlab
-       :repo "ideasman42/emacs-mode-line-idle"))
+     :commands (mode-line-idle))
