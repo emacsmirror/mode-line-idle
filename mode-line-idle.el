@@ -98,8 +98,10 @@ TREE can be one of the following:
         (dolist (content-keywords (cdr item))
           (pcase-let ((`(,content . ,keywords) content-keywords))
 
-            ;; Arguments which may be set from `keywords'.
-            (let ((kw-interrupt nil))
+            (let
+              ( ;; Arguments which may be set from `keywords'.
+                (kw-interrupt nil)
+                (kw-literal nil))
 
               ;; Extract keyword argument pairs.
               (let ((kw-iter keywords))
@@ -110,6 +112,8 @@ TREE can be one of the following:
                     (cond
                       ((eq key ':interrupt)
                         (setq kw-interrupt (car kw-iter)))
+                      ((eq key ':literal)
+                        (setq kw-literal (car kw-iter)))
                       (t
                         (message "Error, unknown property for `mode-line-idle'found: %S" key)))
                     (setq kw-iter (cdr kw-iter)))))
@@ -139,6 +143,11 @@ TREE can be one of the following:
 
                 ;; May be nil when interrupted.
                 (when value
+
+                  ;; Prevent `mode-line-format' from interpreting `%'.
+                  (when kw-literal
+                    (setq value (replace-regexp-in-string "%" "%%" value)))
+
                   (assq-delete-all content mode-line-idle--values)
                   (push (cons content value) mode-line-idle--values)
                   (setq found t))))))

@@ -42,7 +42,7 @@ The function signature is:
 Optional Keyword Arguments
 --------------------------
 
-``:interrupt``
+``:interrupt`` (boolean)
    When non-nil, evaluating the string will be interrupted on key input.
 
    This is intended for long running operations,
@@ -50,6 +50,8 @@ Optional Keyword Arguments
 
    Interruption uses the same behavior as ``quit``,
    see ``with-no-input`` documentation for details.
+``:literal`` (boolean)
+   When non-nil, replace ``%`` with ``%%`` to prevent ``mode-line-format`` from interpreting the character.
 
 
 Examples
