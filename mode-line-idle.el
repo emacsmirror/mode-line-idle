@@ -83,19 +83,65 @@ TREE can be one of the following:
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions
 
-(defun mode-line-idle--timer-callback (buf item)
+(defun mode-line-idle--timer-callback (buf item delay-in-seconds)
   "Calculate all values in BUF for the times associated with ITEM."
   ;; It's possible the buffer was removed since the timer started.
   ;; In this case there is nothing to do as the timer only runs once
   ;; and the variables are local.
   (when (buffer-live-p buf)
     (with-current-buffer buf
-      (let ((found nil))
-        (dolist (content (cdr item))
-          ;; Replace the previous value, if it exists.
-          (assq-delete-all content mode-line-idle--values)
-          (push (cons content (mode-line-idle--tree-to-string content)) mode-line-idle--values)
-          (setq found t))
+      (let
+        (
+          (found nil)
+          (has-input nil)
+          (interrupt-args (list)))
+        (dolist (content-keywords (cdr item))
+          (pcase-let ((`(,content . ,keywords) content-keywords))
+
+            ;; Arguments which may be set from `keywords'.
+            (let ((kw-interrupt nil))
+
+              ;; Extract keyword argument pairs.
+              (let ((kw-iter keywords))
+                (while kw-iter
+                  (let ((key (car kw-iter)))
+                    (unless (setq kw-iter (cdr kw-iter))
+                      (message "Error, key has no value: %S" key))
+                    (cond
+                      ((eq key ':interrupt)
+                        (setq kw-interrupt (car kw-iter)))
+                      (t
+                        (message "Error, unknown property for `mode-line-idle'found: %S" key)))
+                    (setq kw-iter (cdr kw-iter)))))
+
+              ;; Replace the previous value, if it exists.
+              (let ((value nil))
+                (cond
+
+                  ;; Execute with support for interruption.
+                  (kw-interrupt
+                    (unless has-input
+                      (while-no-input (setq value (mode-line-idle--tree-to-string content)))
+                      (unless value
+                        (setq has-input t)))
+
+                    ;; Execution was interrupted, re-run later.
+                    (unless value
+                      (let ((default-text (cdr (assq content mode-line-idle--values))))
+                        ;; Build a list with cons, add it to `interrupt-args'
+                        (push
+                          (cons delay-in-seconds (cons content (cons default-text keywords)))
+                          interrupt-args))))
+
+                  ;; Default execution.
+                  (t
+                    (setq value (mode-line-idle--tree-to-string content))))
+
+                ;; May be nil when interrupted.
+                (when value
+                  (assq-delete-all content mode-line-idle--values)
+                  (push (cons content value) mode-line-idle--values)
+                  (setq found t))))))
 
         ;; Remove this item.
         (setq mode-line-idle--timers (delq item mode-line-idle--timers))
@@ -105,14 +151,18 @@ TREE can be one of the following:
           ;; Prevent `mode-line-idle' from starting new idle timers
           ;; since it can cause continuous updates.
           (let ((mode-line-idle--timer-lock t))
-            (redisplay t)))))))
+            (redisplay t)))
+
+        ;; Re-create interrupted timers.
+        (dolist (args interrupt-args)
+          (apply #'mode-line-idle args))))))
 
 
 ;; ---------------------------------------------------------------------------
 ;; Public Functions
 
 ;;;###autoload
-(defun mode-line-idle (delay-in-seconds content default-text)
+(defun mode-line-idle (delay-in-seconds content default-text &rest keywords)
   "Delayed evaluation of CONTENT, delayed by DELAY-IN-SECONDS."
 
   ;; Check if this is running within `mode-line-idle--timer-callback'.
@@ -129,15 +179,16 @@ TREE can be one of the following:
           nil
           #'mode-line-idle--timer-callback
           (current-buffer)
-          item)
+          item
+          delay-in-seconds)
         (push item mode-line-idle--timers))
 
       ;; Add the symbol to the timer list.
-      (let ((content-list (cdr item)))
+      (let ((content-alist (cdr item)))
         ;; Paranoid check we don't add twice.
-        (setq content-list (delq content content-list))
-        (push content content-list)
-        (setcdr item content-list))))
+        (setq content-alist (assq-delete-all content content-alist))
+        (push (cons content keywords) content-alist)
+        (setcdr item content-alist))))
 
   ;; Return the cached value.
   (let ((value (cdr (assq content mode-line-idle--values))))

@@ -28,7 +28,7 @@ To use ``mode-line-idle`` you will need to set ``mode-line-format`` using ``eval
 
 The function signature is:
 
-``(mode-line-idle delay content default-text)``
+``(mode-line-idle delay content default-text &rest keywords)``
 
 :delay:
    The number of seconds to delay evaluation once Emacs is idle.
@@ -37,6 +37,19 @@ The function signature is:
    this takes on a similar for to ``mode-line-format`` (more on this below).
 :default-text:
    The text to show before the value has been computed.
+
+
+Optional Keyword Arguments
+--------------------------
+
+``:interrupt``
+   When non-nil, evaluating the string will be interrupted on key input.
+
+   This is intended for long running operations,
+   to prevent them locking Emacs if the user begins typing while the operation is running.
+
+   Interruption uses the same behavior as ``quit``,
+   see ``with-no-input`` documentation for details.
 
 
 Examples
@@ -77,7 +90,7 @@ Two timers, with different faces.
                                 "Date: "
                                 (mode-line-idle 1.0 my-date "...")
                                 " Word Count: "
-                                (mode-line-idle 3.0 my-word "?")))))
+                                (mode-line-idle 3.0 my-word "?" :interrupt t)))))
 
 
 Installation
