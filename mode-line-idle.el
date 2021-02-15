@@ -28,7 +28,8 @@
 ;;; Usage
 
 ;; (defvar my-word '(:eval (count-words (point-min) (point-max))))
-;; (setq-default mode-line-format (list "Word Count " '(:eval (mode-line-idle 1.0 my-word "?"))))
+;; (setq-default mode-line-format
+;;   (list "Word Count " '(:eval (mode-line-idle 1.0 my-word "?" :interrupt t))))
 ;;
 
 ;;; Code:
@@ -84,7 +85,9 @@ TREE can be one of the following:
 ;; Internal Functions
 
 (defun mode-line-idle--timer-callback (buf item delay-in-seconds)
-  "Calculate all values in BUF for the times associated with ITEM."
+  "Calculate all values in BUF for the times associated with ITEM.
+
+Argument DELAY-IN-SECONDS the idle time used for re-creating any interrupted."
   ;; It's possible the buffer was removed since the timer started.
   ;; In this case there is nothing to do as the timer only runs once
   ;; and the variables are local.
@@ -172,7 +175,14 @@ TREE can be one of the following:
 
 ;;;###autoload
 (defun mode-line-idle (delay-in-seconds content default-text &rest keywords)
-  "Delayed evaluation of CONTENT, delayed by DELAY-IN-SECONDS."
+  "Delayed evaluation of CONTENT, delayed by DELAY-IN-SECONDS.
+
+Argument KEYWORDS is a property list of optional keywords:
+
+- `:interrupt' When non-nil, interrupt evaluation on keyboard input
+  (use for long running actions).
+- `:literal' When non-nil, replace `%' with `%%',
+  to prevent `mode-line-format' from formatting these characters."
 
   ;; Check if this is running within `mode-line-idle--timer-callback'.
   (unless mode-line-idle--timer-lock
