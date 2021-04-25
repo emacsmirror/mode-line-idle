@@ -70,7 +70,7 @@ The block to evaluate can be included inline as well.
 .. code-block:: elisp
 
    (setq-default mode-line-format
-     (list "Example " '(:eval (mode-line-idle 1.0 (:eval '(current-time-string)) "?"))))
+     (list "Example " '(:eval (mode-line-idle 1.0 '(:eval (current-time-string)) "?"))))
 
 As with ``mode-line-format``, ``propertize`` is supported.
 
