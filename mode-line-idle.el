@@ -7,7 +7,7 @@
 
 ;; URL: https://gitlab.com/ideasman42/emacs-mode-line-idle
 ;; Version: 0.1
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
 
@@ -137,7 +137,7 @@ Argument DELAY-IN-SECONDS the idle time used for re-creating any interrupted."
 
                   ;; Prevent `mode-line-format' from interpreting `%'.
                   (when kw-literal
-                    (setq value (replace-regexp-in-string "%" "%%" value)))
+                    (setq value (string-replace "%" "%%" value)))
 
                   (assq-delete-all content mode-line-idle--values)
                   (push (cons content value) mode-line-idle--values)
