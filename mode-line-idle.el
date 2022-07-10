@@ -93,62 +93,60 @@ Argument DELAY-IN-SECONDS the idle time used for re-creating any interrupted."
           (found nil)
           (has-input nil)
           (interrupt-args (list)))
-        (dolist (content-keywords (cdr item))
-          (pcase-let ((`(,content . ,keywords) content-keywords))
+        (pcase-dolist (`(,content . ,keywords) (cdr item))
+          (let
+            ( ;; Arguments which may be set from `keywords'.
+              (kw-interrupt nil)
+              (kw-literal nil))
 
-            (let
-              ( ;; Arguments which may be set from `keywords'.
-                (kw-interrupt nil)
-                (kw-literal nil))
+            ;; Extract keyword argument pairs.
+            (let ((kw-iter keywords))
+              (while kw-iter
+                (let ((key (car kw-iter)))
+                  (unless (setq kw-iter (cdr kw-iter))
+                    (message "Error, key has no value: %S" key))
+                  (cond
+                    ((eq key ':interrupt)
+                      (setq kw-interrupt (car kw-iter)))
+                    ((eq key ':literal)
+                      (setq kw-literal (car kw-iter)))
+                    (t
+                      (message "Error, unknown property for `mode-line-idle'found: %S" key)))
+                  (setq kw-iter (cdr kw-iter)))))
 
-              ;; Extract keyword argument pairs.
-              (let ((kw-iter keywords))
-                (while kw-iter
-                  (let ((key (car kw-iter)))
-                    (unless (setq kw-iter (cdr kw-iter))
-                      (message "Error, key has no value: %S" key))
-                    (cond
-                      ((eq key ':interrupt)
-                        (setq kw-interrupt (car kw-iter)))
-                      ((eq key ':literal)
-                        (setq kw-literal (car kw-iter)))
-                      (t
-                        (message "Error, unknown property for `mode-line-idle'found: %S" key)))
-                    (setq kw-iter (cdr kw-iter)))))
+            ;; Replace the previous value, if it exists.
+            (let ((value nil))
+              (cond
 
-              ;; Replace the previous value, if it exists.
-              (let ((value nil))
-                (cond
-
-                  ;; Execute with support for interruption.
-                  (kw-interrupt
-                    (unless has-input
-                      (while-no-input (setq value (mode-line-idle--tree-to-string content)))
-                      (unless value
-                        (setq has-input t)))
-
-                    ;; Execution was interrupted, re-run later.
+                ;; Execute with support for interruption.
+                (kw-interrupt
+                  (unless has-input
+                    (while-no-input (setq value (mode-line-idle--tree-to-string content)))
                     (unless value
-                      (let ((default-text (cdr (assq content mode-line-idle--values))))
-                        ;; Build a list with cons, add it to `interrupt-args'
-                        (push
-                          (cons delay-in-seconds (cons content (cons default-text keywords)))
-                          interrupt-args))))
+                      (setq has-input t)))
 
-                  ;; Default execution.
-                  (t
-                    (setq value (mode-line-idle--tree-to-string content))))
+                  ;; Execution was interrupted, re-run later.
+                  (unless value
+                    (let ((default-text (cdr (assq content mode-line-idle--values))))
+                      ;; Build a list with cons, add it to `interrupt-args'
+                      (push
+                        (cons delay-in-seconds (cons content (cons default-text keywords)))
+                        interrupt-args))))
 
-                ;; May be nil when interrupted.
-                (when value
+                ;; Default execution.
+                (t
+                  (setq value (mode-line-idle--tree-to-string content))))
 
-                  ;; Prevent `mode-line-format' from interpreting `%'.
-                  (when kw-literal
-                    (setq value (string-replace "%" "%%" value)))
+              ;; May be nil when interrupted.
+              (when value
 
-                  (assq-delete-all content mode-line-idle--values)
-                  (push (cons content value) mode-line-idle--values)
-                  (setq found t))))))
+                ;; Prevent `mode-line-format' from interpreting `%'.
+                (when kw-literal
+                  (setq value (string-replace "%" "%%" value)))
+
+                (assq-delete-all content mode-line-idle--values)
+                (push (cons content value) mode-line-idle--values)
+                (setq found t)))))
 
         ;; Remove this item.
         (setq mode-line-idle--timers (delq item mode-line-idle--timers))
