@@ -6,7 +6,7 @@
 ;; Author: Campbell Barton <ideasman42@gmail.com>
 
 ;; URL: https://codeberg.org/ideasman42/emacs-mode-line-idle
-;; Version: 0.1
+;; Version: 0.2
 ;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
@@ -36,9 +36,15 @@ TREE can be one of the following:
   - The `caar' is passed to `mode-line-idle--tree-to-string'.
   - The `cddr' is passed to as properties to `propertize'.
 - Other lists: element-wise processed with `mode-line-idle--tree-to-string'
+- A string is passed through (with any associated properties).
+- A nil value is treated as an empty string.
 - A symbol, it's value will be passed to `mode-line-idle--tree-to-string'.
 - Any other element is converted into a string using `prin1-to-string'."
   (cond
+    ((stringp tree)
+      ;; Check for strings as falling back to `prin1-to-string' removes any properties
+      ;; that may have been set on the string, see bug #2.
+      tree)
     ((null tree)
       "")
     ((symbolp tree)
@@ -55,6 +61,7 @@ TREE can be one of the following:
           (t
             (mapconcat #'mode-line-idle--tree-to-string tree "")))))
     (t
+      ;; For convenience, support other values being coerced into strings.
       (prin1-to-string tree t))))
 
 
