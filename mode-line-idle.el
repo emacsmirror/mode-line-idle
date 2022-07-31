@@ -57,7 +57,7 @@ TREE can be one of the following:
             (mode-line-idle--tree-to-string (eval (cons 'progn (cdr tree)) t)))
           ((eq tree-type :propertize)
             (pcase-let ((`(,item . ,rest) (cdr tree)))
-              (apply 'propertize (cons (mode-line-idle--tree-to-string item) rest))))
+              (apply #'propertize (cons (mode-line-idle--tree-to-string item) rest))))
           (t
             (mapconcat #'mode-line-idle--tree-to-string tree "")))))
     (t
