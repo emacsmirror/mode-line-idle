@@ -83,10 +83,8 @@ TREE can be one of the following:
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions
 
-(defun mode-line-idle--timer-callback (buf item delay-in-seconds)
-  "Calculate all values in BUF for the times associated with ITEM.
-
-Argument DELAY-IN-SECONDS the idle time used for re-creating any interrupted."
+(defun mode-line-idle--timer-callback (buf item)
+  "Calculate all values in BUF for the times associated with ITEM."
   ;; It's possible the buffer was removed since the timer started.
   ;; In this case there is nothing to do as the timer only runs once
   ;; and the variables are local.
@@ -96,6 +94,7 @@ Argument DELAY-IN-SECONDS the idle time used for re-creating any interrupted."
         (
           (found nil)
           (has-input nil)
+          (delay-in-seconds (car item))
           (interrupt-args (list)))
         (pcase-dolist (`(,content . ,keywords) (cdr item))
           (let
@@ -195,8 +194,7 @@ Argument KEYWORDS is a property list of optional keywords:
           nil
           #'mode-line-idle--timer-callback
           (current-buffer)
-          item
-          delay-in-seconds)
+          item)
         (push item mode-line-idle--timers))
 
       ;; Add the symbol to the timer list.
