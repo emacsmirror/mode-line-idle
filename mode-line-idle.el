@@ -83,6 +83,93 @@ TREE can be one of the following:
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions
 
+(defun mode-line-idle--update-and-redisplay ()
+  "Refresh the mode-line after refreshing it's contents."
+  (force-mode-line-update)
+  ;; Prevent `mode-line-idle' from starting new idle timers
+  ;; since it can cause continuous updates.
+  (let ((mode-line-idle--timer-lock t))
+    (redisplay t)))
+
+(defun mode-line-idle--timer-callback-impl (item &optional force)
+  "Calculate all values for ITEM.
+When FORCE is non-nil, don't check for interruption and don't re-display.
+
+Return non-nil when any values were calculated."
+  (let
+    (
+      (found nil)
+      (has-input nil)
+      (interrupt-args (list)))
+    (pcase-dolist (`(,content . ,keywords) (cdr item))
+      (let
+        ( ;; Arguments which may be set from `keywords'.
+          (kw-interrupt nil)
+          (kw-literal nil))
+
+        ;; Extract keyword argument pairs.
+        (let ((kw-iter keywords))
+          (while kw-iter
+            (let ((key (car kw-iter)))
+              (unless (setq kw-iter (cdr kw-iter))
+                (message "Error, key has no value: %S" key))
+              (cond
+                ((eq key ':interrupt)
+                  (setq kw-interrupt (car kw-iter)))
+                ((eq key ':literal)
+                  (setq kw-literal (car kw-iter)))
+                (t
+                  (message "Error, unknown property for `mode-line-idle'found: %S" key)))
+              (setq kw-iter (cdr kw-iter)))))
+
+        (when force
+          (setq kw-interrupt nil))
+
+        ;; Replace the previous value, if it exists.
+        (let ((value nil))
+          (cond
+
+            ;; Execute with support for interruption.
+            (kw-interrupt
+              (unless has-input
+                (while-no-input (setq value (mode-line-idle--tree-to-string content)))
+                (unless value
+                  (setq has-input t)))
+
+              ;; Execution was interrupted, re-run later.
+              (unless value
+                (let ((default-text (cdr (assq content mode-line-idle--values))))
+                  ;; Build a list with cons, add it to `interrupt-args'
+                  (push
+                    (cons (car item) (cons content (cons default-text keywords)))
+                    interrupt-args))))
+
+            ;; Default execution.
+            (t
+              (setq value (mode-line-idle--tree-to-string content))))
+
+          ;; May be nil when interrupted.
+          (when value
+
+            ;; Prevent `mode-line-format' from interpreting `%'.
+            (when kw-literal
+              (setq value (string-replace "%" "%%" value)))
+
+            (assq-delete-all content mode-line-idle--values)
+            (push (cons content value) mode-line-idle--values)
+            (setq found t)))))
+
+
+    (unless force
+      (when found
+        (mode-line-idle--update-and-redisplay))
+
+      ;; Re-create interrupted timers.
+      (dolist (args interrupt-args)
+        (apply #'mode-line-idle args)))
+
+    found))
+
 (defun mode-line-idle--timer-callback (buf item)
   "Calculate all values in BUF for the times associated with ITEM."
   ;; It's possible the buffer was removed since the timer started.
@@ -90,80 +177,9 @@ TREE can be one of the following:
   ;; and the variables are local.
   (when (buffer-live-p buf)
     (with-current-buffer buf
-      (let
-        (
-          (found nil)
-          (has-input nil)
-          (delay-in-seconds (car item))
-          (interrupt-args (list)))
-        (pcase-dolist (`(,content . ,keywords) (cdr item))
-          (let
-            ( ;; Arguments which may be set from `keywords'.
-              (kw-interrupt nil)
-              (kw-literal nil))
-
-            ;; Extract keyword argument pairs.
-            (let ((kw-iter keywords))
-              (while kw-iter
-                (let ((key (car kw-iter)))
-                  (unless (setq kw-iter (cdr kw-iter))
-                    (message "Error, key has no value: %S" key))
-                  (cond
-                    ((eq key ':interrupt)
-                      (setq kw-interrupt (car kw-iter)))
-                    ((eq key ':literal)
-                      (setq kw-literal (car kw-iter)))
-                    (t
-                      (message "Error, unknown property for `mode-line-idle'found: %S" key)))
-                  (setq kw-iter (cdr kw-iter)))))
-
-            ;; Replace the previous value, if it exists.
-            (let ((value nil))
-              (cond
-
-                ;; Execute with support for interruption.
-                (kw-interrupt
-                  (unless has-input
-                    (while-no-input (setq value (mode-line-idle--tree-to-string content)))
-                    (unless value
-                      (setq has-input t)))
-
-                  ;; Execution was interrupted, re-run later.
-                  (unless value
-                    (let ((default-text (cdr (assq content mode-line-idle--values))))
-                      ;; Build a list with cons, add it to `interrupt-args'
-                      (push
-                        (cons delay-in-seconds (cons content (cons default-text keywords)))
-                        interrupt-args))))
-
-                ;; Default execution.
-                (t
-                  (setq value (mode-line-idle--tree-to-string content))))
-
-              ;; May be nil when interrupted.
-              (when value
-
-                ;; Prevent `mode-line-format' from interpreting `%'.
-                (when kw-literal
-                  (setq value (string-replace "%" "%%" value)))
-
-                (assq-delete-all content mode-line-idle--values)
-                (push (cons content value) mode-line-idle--values)
-                (setq found t)))))
-
-        ;; Remove this item.
-        (setq mode-line-idle--timers (delq item mode-line-idle--timers))
-
-        (when found
-          (force-mode-line-update)
-          ;; Prevent `mode-line-idle' from starting new idle timers
-          ;; since it can cause continuous updates.
-          (let ((mode-line-idle--timer-lock t))
-            (redisplay t)))
-
-        ;; Re-create interrupted timers.
-        (dolist (args interrupt-args)
-          (apply #'mode-line-idle args))))))
+      (mode-line-idle--timer-callback-impl item nil)
+      ;; Remove this item.
+      (setq mode-line-idle--timers (delq item mode-line-idle--timers)))))
 
 
 ;; ---------------------------------------------------------------------------
@@ -207,6 +223,26 @@ Argument KEYWORDS is a property list of optional keywords:
   ;; Return the cached value.
   (let ((value (cdr (assq content mode-line-idle--values))))
     (or value default-text)))
+
+;;;###autoload
+(defun mode-line-idle-force-update (&optional delay-in-seconds)
+  "Calculate pending `mode-line-idle' entries immediately.
+When DELAY-IN-SECONDS is nil, all pending values are calculated,
+otherwise ignore pending timers over this time.
+Return non-nil when the mode-line was updated."
+  (let ((found nil))
+    (dolist (item mode-line-idle--timers)
+      (when (or (null delay-in-seconds) (<= (car item) delay-in-seconds))
+        (when (mode-line-idle--timer-callback-impl item t)
+          (setq found t))
+        ;; The idle timer isn't removed, nothing left to compute.
+        ;; An alternative solution would be to cancel the idle timer but that means storing
+        ;; the idle timer to support a fairly rare use-case.
+        (setcdr item nil)))
+    (when found
+      (mode-line-idle--update-and-redisplay))
+    found))
+
 
 (provide 'mode-line-idle)
 ;;; mode-line-idle.el ends here

@@ -95,6 +95,16 @@ Two timers, with different faces.
                                 (mode-line-idle 3.0 my-word "?" :interrupt t)))))
 
 
+Utility Functions
+=================
+
+``(mode-line-idle-force-update &optional delay-in-seconds)``
+   Calculate pending ``mode-line-idle`` items immediately.
+
+   When ``delay-in-seconds`` nil or omitted - update everything.
+   Otherwise skip items with an idle time over this value.
+
+
 Installation
 ============
 
