@@ -132,7 +132,8 @@ Return non-nil when any values were calculated."
             ;; Execute with support for interruption.
             (kw-interrupt
               (unless has-input
-                (while-no-input (setq value (mode-line-idle--tree-to-string content)))
+                (while-no-input
+                  (setq value (mode-line-idle--tree-to-string content)))
                 (unless value
                   (setq has-input t)))
 
@@ -205,10 +206,7 @@ Argument KEYWORDS is a property list of optional keywords:
           (setq delay-in-seconds (float delay-in-seconds)))
         (setq item (cons delay-in-seconds (list)))
         ;; Since this is a one-off timer, no need to manage, fire and forget.
-        (run-with-idle-timer
-          delay-in-seconds
-          nil
-          #'mode-line-idle--timer-callback
+        (run-with-idle-timer delay-in-seconds nil #'mode-line-idle--timer-callback
           (current-buffer)
           item)
         (push item mode-line-idle--timers))
