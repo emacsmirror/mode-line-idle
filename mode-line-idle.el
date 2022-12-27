@@ -45,28 +45,28 @@ TREE can be one of the following:
 - A symbol, it's value will be passed to `mode-line-idle--tree-to-string'.
 - Any other element is converted into a string using `prin1-to-string'."
   (cond
-    ((stringp tree)
-      ;; Check for strings as falling back to `prin1-to-string' removes any properties
-      ;; that may have been set on the string, see bug #2.
-      tree)
-    ((null tree)
-      "")
-    ((symbolp tree)
-      ;; Support non-string symbols, allows numbers etc to be included.
-      (mode-line-idle--tree-to-string (symbol-value tree)))
-    ((listp tree)
-      (let ((tree-type (car-safe tree)))
-        (cond
-          ((eq tree-type :eval)
-            (mode-line-idle--tree-to-string (eval (cons 'progn (cdr tree)) t)))
-          ((eq tree-type :propertize)
-            (pcase-let ((`(,item . ,rest) (cdr tree)))
-              (apply #'propertize (cons (mode-line-idle--tree-to-string item) rest))))
-          (t
-            (mapconcat #'mode-line-idle--tree-to-string tree "")))))
-    (t
-      ;; For convenience, support other values being coerced into strings.
-      (prin1-to-string tree t))))
+   ((stringp tree)
+    ;; Check for strings as falling back to `prin1-to-string' removes any properties
+    ;; that may have been set on the string, see bug #2.
+    tree)
+   ((null tree)
+    "")
+   ((symbolp tree)
+    ;; Support non-string symbols, allows numbers etc to be included.
+    (mode-line-idle--tree-to-string (symbol-value tree)))
+   ((listp tree)
+    (let ((tree-type (car-safe tree)))
+      (cond
+       ((eq tree-type :eval)
+        (mode-line-idle--tree-to-string (eval (cons 'progn (cdr tree)) t)))
+       ((eq tree-type :propertize)
+        (pcase-let ((`(,item . ,rest) (cdr tree)))
+          (apply #'propertize (cons (mode-line-idle--tree-to-string item) rest))))
+       (t
+        (mapconcat #'mode-line-idle--tree-to-string tree "")))))
+   (t
+    ;; For convenience, support other values being coerced into strings.
+    (prin1-to-string tree t))))
 
 
 ;; ---------------------------------------------------------------------------
@@ -96,16 +96,14 @@ TREE can be one of the following:
 When FORCE is non-nil, don't check for interruption and don't re-display.
 
 Return non-nil when any values were calculated."
-  (let
-    (
-      (found nil)
-      (has-input nil)
-      (interrupt-args (list)))
+  (let ((found nil)
+        (has-input nil)
+        (interrupt-args (list)))
     (pcase-dolist (`(,content . ,keywords) (cdr item))
       (let
-        ( ;; Arguments which may be set from `keywords'.
-          (kw-interrupt nil)
-          (kw-literal nil))
+          ( ;; Arguments which may be set from `keywords'.
+           (kw-interrupt nil)
+           (kw-literal nil))
 
         ;; Extract keyword argument pairs.
         (let ((kw-iter keywords))
@@ -114,12 +112,12 @@ Return non-nil when any values were calculated."
               (unless (setq kw-iter (cdr kw-iter))
                 (message "Error, key has no value: %S" key))
               (cond
-                ((eq key ':interrupt)
-                  (setq kw-interrupt (car kw-iter)))
-                ((eq key ':literal)
-                  (setq kw-literal (car kw-iter)))
-                (t
-                  (message "Error, unknown property for `mode-line-idle'found: %S" key)))
+               ((eq key ':interrupt)
+                (setq kw-interrupt (car kw-iter)))
+               ((eq key ':literal)
+                (setq kw-literal (car kw-iter)))
+               (t
+                (message "Error, unknown property for `mode-line-idle'found: %S" key)))
               (setq kw-iter (cdr kw-iter)))))
 
         (when force
@@ -129,25 +127,23 @@ Return non-nil when any values were calculated."
         (let ((value nil))
           (cond
 
-            ;; Execute with support for interruption.
-            (kw-interrupt
-              (unless has-input
-                (while-no-input
-                  (setq value (mode-line-idle--tree-to-string content)))
-                (unless value
-                  (setq has-input t)))
-
-              ;; Execution was interrupted, re-run later.
+           ;; Execute with support for interruption.
+           (kw-interrupt
+            (unless has-input
+              (while-no-input
+                (setq value (mode-line-idle--tree-to-string content)))
               (unless value
-                (let ((default-text (cdr (assq content mode-line-idle--values))))
-                  ;; Build a list with cons, add it to `interrupt-args'
-                  (push
-                    (cons (car item) (cons content (cons default-text keywords)))
-                    interrupt-args))))
+                (setq has-input t)))
 
-            ;; Default execution.
-            (t
-              (setq value (mode-line-idle--tree-to-string content))))
+            ;; Execution was interrupted, re-run later.
+            (unless value
+              (let ((default-text (cdr (assq content mode-line-idle--values))))
+                ;; Build a list with cons, add it to `interrupt-args'
+                (push (cons (car item) (cons content (cons default-text keywords))) interrupt-args))))
+
+           ;; Default execution.
+           (t
+            (setq value (mode-line-idle--tree-to-string content))))
 
           ;; May be nil when interrupted.
           (when value
@@ -159,7 +155,6 @@ Return non-nil when any values were calculated."
             (assq-delete-all content mode-line-idle--values)
             (push (cons content value) mode-line-idle--values)
             (setq found t)))))
-
 
     (unless force
       (when found
@@ -207,8 +202,8 @@ Argument KEYWORDS is a property list of optional keywords:
         (setq item (cons delay-in-seconds (list)))
         ;; Since this is a one-off timer, no need to manage, fire and forget.
         (run-with-idle-timer delay-in-seconds nil #'mode-line-idle--timer-callback
-          (current-buffer)
-          item)
+                             (current-buffer)
+                             item)
         (push item mode-line-idle--timers))
 
       ;; Add the symbol to the timer list.
