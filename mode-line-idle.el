@@ -100,10 +100,9 @@ Return non-nil when any values were calculated."
         (has-input nil)
         (interrupt-args (list)))
     (pcase-dolist (`(,content . ,keywords) (cdr item))
-      (let
-          ( ;; Arguments which may be set from `keywords'.
-           (kw-interrupt nil)
-           (kw-literal nil))
+      ;; Arguments which may be set from `keywords'.
+      (let ((kw-interrupt nil)
+            (kw-literal nil))
 
         ;; Extract keyword argument pairs.
         (let ((kw-iter keywords))
@@ -139,7 +138,9 @@ Return non-nil when any values were calculated."
             (unless value
               (let ((default-text (cdr (assq content mode-line-idle--values))))
                 ;; Build a list with cons, add it to `interrupt-args'
-                (push (cons (car item) (cons content (cons default-text keywords))) interrupt-args))))
+                (push
+                 (cons (car item) (cons content (cons default-text keywords)))
+                 interrupt-args))))
 
            ;; Default execution.
            (t
