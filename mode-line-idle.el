@@ -239,4 +239,8 @@ Return non-nil when the mode-line was updated."
 
 
 (provide 'mode-line-idle)
+;; Local Variables:
+;; fill-column: 99
+;; indent-tabs-mode: nil
+;; End:
 ;;; mode-line-idle.el ends here
