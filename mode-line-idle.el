@@ -139,8 +139,7 @@ Return non-nil when any values were calculated."
               (let ((default-text (cdr (assq content mode-line-idle--values))))
                 ;; Build a list with cons, add it to `interrupt-args'
                 (push
-                 (cons (car item) (cons content (cons default-text keywords)))
-                 interrupt-args))))
+                 (cons (car item) (cons content (cons default-text keywords))) interrupt-args))))
 
            ;; Default execution.
            (t
