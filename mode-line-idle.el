@@ -111,9 +111,9 @@ Return non-nil when any values were calculated."
               (unless (setq kw-iter (cdr kw-iter))
                 (message "Error, key has no value: %S" key))
               (cond
-               ((eq key ':interrupt)
+               ((eq key :interrupt)
                 (setq kw-interrupt (car kw-iter)))
-               ((eq key ':literal)
+               ((eq key :literal)
                 (setq kw-literal (car kw-iter)))
                (t
                 (message "Error, unknown property for `mode-line-idle'found: %S" key)))
