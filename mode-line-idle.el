@@ -44,6 +44,7 @@ TREE can be one of the following:
 - A nil value is treated as an empty string.
 - A symbol, it's value will be passed to `mode-line-idle--tree-to-string'.
 - Any other element is converted into a string using `prin1-to-string'."
+  ;; NOTE: can't be `side-effect-free' because of `eval'.
   (cond
    ((stringp tree)
     ;; Check for strings as falling back to `prin1-to-string' removes any properties
