@@ -2,8 +2,10 @@
 Change Log
 ##########
 
-- In development.
 
+- Version 0.3 (2024-04-20)
+
+  - Fix error in ``assq-delete-all`` use.
   - Add ``mode-line-idle-force-update`` function to calculate pending idle timers.
 
 - Version 0.2 (2022-07-10)
