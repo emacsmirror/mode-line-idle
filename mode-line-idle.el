@@ -153,8 +153,9 @@ Return non-nil when any values were calculated."
             (when kw-literal
               (setq value (string-replace "%" "%%" value)))
 
-            (assq-delete-all content mode-line-idle--values)
-            (push (cons content value) mode-line-idle--values)
+            ;; Remove and add `content' at the head of the a-list.
+            (setq mode-line-idle--values
+                  (cons (cons content value) (assq-delete-all content mode-line-idle--values)))
             (setq found t)))))
 
     (unless force
