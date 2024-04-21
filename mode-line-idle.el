@@ -44,6 +44,7 @@ TREE can be one of the following:
 - A nil value is treated as an empty string.
 - A symbol, it's value will be passed to `mode-line-idle--tree-to-string'.
 - Any other element is converted into a string using `prin1-to-string'."
+  (declare (important-return-value t))
   ;; NOTE: can't be `side-effect-free' because of `eval'.
   (cond
    ((stringp tree)
@@ -86,6 +87,7 @@ TREE can be one of the following:
 
 (defun mode-line-idle--update-and-redisplay ()
   "Refresh the mode-line after refreshing it's contents."
+  (declare (important-return-value nil))
   (force-mode-line-update)
   ;; Prevent `mode-line-idle' from starting new idle timers
   ;; since it can cause continuous updates.
@@ -97,6 +99,7 @@ TREE can be one of the following:
 When FORCE is non-nil, don't check for interruption and don't re-display.
 
 Return non-nil when any values were calculated."
+  (declare (important-return-value nil))
   (let ((found nil)
         (has-input nil)
         (interrupt-args (list)))
@@ -170,6 +173,7 @@ Return non-nil when any values were calculated."
 
 (defun mode-line-idle--timer-callback (buf item)
   "Calculate all values in BUF for the times associated with ITEM."
+  (declare (important-return-value nil))
   ;; It's possible the buffer was removed since the timer started.
   ;; In this case there is nothing to do as the timer only runs once
   ;; and the variables are local.
@@ -193,6 +197,7 @@ Argument KEYWORDS is a property list of optional keywords:
   (use for long running actions).
 - `:literal' When non-nil, replace `%' with `%%',
   to prevent `mode-line-format' from formatting these characters."
+  (declare (important-return-value t))
 
   ;; Check if this is running within `mode-line-idle--timer-callback'.
   (unless mode-line-idle--timer-lock
@@ -225,6 +230,7 @@ Argument KEYWORDS is a property list of optional keywords:
 When DELAY-IN-SECONDS is nil, all pending values are calculated,
 otherwise ignore pending timers over this time.
 Return non-nil when the mode-line was updated."
+  (declare (important-return-value t))
   (let ((found nil))
     (dolist (item mode-line-idle--timers)
       (when (or (null delay-in-seconds) (<= (car item) delay-in-seconds))
