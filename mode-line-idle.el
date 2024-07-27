@@ -64,6 +64,21 @@ TREE can be one of the following:
        ((eq tree-type :propertize)
         (pcase-let ((`(,item . ,rest) (cdr tree)))
           (apply #'propertize (cons (mode-line-idle--tree-to-string item) rest))))
+       ;; Support cons-cell (integer rest), where the integer pads/truncates the string length.
+       ((integerp tree-type)
+        (let* ((value (mode-line-idle--tree-to-string (cdr tree)))
+               (value-len (length value)))
+          (cond
+           ;; Negative (maybe truncate).
+           ((< tree-type 0)
+            (let ((tree-clamp (- tree-type)))
+              (when (> value-len tree-clamp)
+                (setq value (substring value 0 tree-clamp)))))
+           ;; Zero or positive (maybe pad).
+           (t
+            (when (< value-len tree-type)
+              (setq value (concat value (make-string (- tree-type value-len) ?\s))))))
+          value))
        (t
         (mapconcat #'mode-line-idle--tree-to-string tree "")))))
    (t
