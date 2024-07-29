@@ -32,18 +32,24 @@
 
 (defun mode-line-idle--tree-to-string (tree)
   "Convert TREE recursively to a string.
-TREE can be one of the following:
-- lists with `car' `:eval'
-  - The `cdr' is evaluated and the result
-    is passed to `mode-line-idle--tree-to-string'
-- Lists with `car' `:propertize'
-  - The `caar' is passed to `mode-line-idle--tree-to-string'.
-  - The `cddr' is passed to as properties to `propertize'.
-- Other lists: element-wise processed with `mode-line-idle--tree-to-string'
-- A string is passed through (with any associated properties).
-- A nil value is treated as an empty string.
-- A symbol, it's value will be passed to `mode-line-idle--tree-to-string'.
-- Any other element is converted into a string using `prin1-to-string'."
+Behavior matches `mode-line-format', see it's doc-string for details."
+
+  ;; Developers note:
+  ;; TREE can be one of the following:
+  ;; - lists with `car' `:eval'
+  ;;   - The `cdr' is evaluated and the result
+  ;;     is passed to `mode-line-idle--tree-to-string'
+  ;; - Lists with `car' `:propertize'
+  ;;   - The `caar' is passed to `mode-line-idle--tree-to-string'.
+  ;;   - The `cddr' is passed to as properties to `propertize'.
+  ;; - Lists with `car' is an integer,
+  ;;   used to pad or truncate (when negative).
+  ;; - Other lists: element-wise processed with `mode-line-idle--tree-to-string'
+  ;; - A string is passed through (with any associated properties).
+  ;; - A nil value is treated as an empty string.
+  ;; - A symbol, it's value will be passed to `mode-line-idle--tree-to-string'.
+  ;; - Any other element is converted into a string using `prin1-to-string'.
+
   (declare (important-return-value t))
   ;; NOTE: can't be `side-effect-free' because of `eval'.
   (cond
@@ -71,9 +77,9 @@ TREE can be one of the following:
           (cond
            ;; Negative (maybe truncate).
            ((< tree-type 0)
-            (let ((tree-clamp (- tree-type)))
-              (when (> value-len tree-clamp)
-                (setq value (substring value 0 tree-clamp)))))
+            (let ((value-truncate (- tree-type)))
+              (when (> value-len value-truncate)
+                (setq value (substring value 0 value-truncate)))))
            ;; Zero or positive (maybe pad).
            (t
             (when (< value-len tree-type)
