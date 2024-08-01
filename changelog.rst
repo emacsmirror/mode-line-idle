@@ -2,7 +2,7 @@
 Change Log
 ##########
 
-- In development
+- Version 0.4 (2024-08-01)
 
   - Fix bug #4: support using an integer as the first element of a cons-cell to pad or truncate the following string
     (as documented by ``mode-line-format``).

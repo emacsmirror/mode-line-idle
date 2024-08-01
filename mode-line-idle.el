@@ -6,7 +6,7 @@
 ;; Author: Campbell Barton <ideasman42@gmail.com>
 
 ;; URL: https://codeberg.org/ideasman42/emacs-mode-line-idle
-;; Version: 0.3
+;; Version: 0.4
 ;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
