@@ -15,7 +15,7 @@ Motivation
 
 To be able to add useful information into the mode-line without slowing down Emacs performance.
 
-While delaying updates is not so difficult,
+While delaying updates isn't such a problem in Emacs,
 having multiple timers can become awkward when mixed in with the mode-lines configuration.
 
 Instead of avoiding expensive information in the mode-line, it can be calculated when idle.
