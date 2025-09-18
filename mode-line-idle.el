@@ -115,7 +115,7 @@ Behavior matches `mode-line-format', see it's doc-string for details."
   (let ((mode-line-idle--timer-lock t))
     (redisplay t)))
 
-(defun mode-line-idle--timer-callback-impl (item &optional force)
+(defun mode-line-idle--timer-callback-impl (item force)
   "Calculate all values for ITEM.
 When FORCE is non-nil, don't check for interruption and don't re-display.
 
@@ -182,6 +182,9 @@ Return non-nil when any values were calculated."
                   (cons (cons content value) (assq-delete-all content mode-line-idle--values)))
             (setq found t)))))
 
+    ;; When forcing the update, the caller is responsible for re-displaying.
+    ;; This is done because forcing is used for forcibly running all timers,
+    ;; so in this case it makes sense to re-display afterwards.
     (unless force
       (when found
         (mode-line-idle--update-and-redisplay))
