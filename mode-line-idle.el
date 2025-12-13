@@ -13,7 +13,7 @@
 
 ;; Simple delayed text evaluation for the mode-line.
 
-;;; Usage
+;;; Usage:
 
 ;; (defvar my-word '(:eval (count-words (point-min) (point-max))))
 ;; (setq-default mode-line-format
@@ -32,7 +32,7 @@
 
 (defun mode-line-idle--tree-to-string (tree)
   "Convert TREE recursively to a string.
-Behavior matches `mode-line-format', see it's doc-string for details."
+Behavior matches `mode-line-format', see its doc-string for details."
 
   ;; Developers note:
   ;; TREE can be one of the following:
@@ -100,14 +100,15 @@ Behavior matches `mode-line-format', see it's doc-string for details."
 ;; Cache evaluated expressions.
 (defvar-local mode-line-idle--values nil)
 ;; Prevent timer creation when running the timer callback.
-(defconst mode-line-idle--timer-lock nil)
+;; Never set as it only exists to be shadowed.
+(defvar mode-line-idle--timer-lock nil)
 
 
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions
 
 (defun mode-line-idle--update-and-redisplay ()
-  "Refresh the mode-line after refreshing it's contents."
+  "Refresh the mode-line after refreshing its contents."
   (declare (important-return-value nil))
   (force-mode-line-update)
   ;; Prevent `mode-line-idle' from starting new idle timers
@@ -141,7 +142,7 @@ Return non-nil when any values were calculated."
                ((eq key :literal)
                 (setq kw-literal (car kw-iter)))
                (t
-                (message "Error, unknown property for `mode-line-idle'found: %S" key)))
+                (message "Error, unknown property for `mode-line-idle' found: %S" key)))
               (setq kw-iter (cdr kw-iter)))))
 
         (when force
@@ -196,7 +197,7 @@ Return non-nil when any values were calculated."
     found))
 
 (defun mode-line-idle--timer-callback (buf item)
-  "Calculate all values in BUF for the times associated with ITEM."
+  "Calculate all values in BUF for the timers associated with ITEM."
   (declare (important-return-value nil))
   ;; It's possible the buffer was removed since the timer started.
   ;; In this case there is nothing to do as the timer only runs once
@@ -214,6 +215,9 @@ Return non-nil when any values were calculated."
 ;;;###autoload
 (defun mode-line-idle (delay-in-seconds content default-text &rest keywords)
   "Delayed evaluation of CONTENT, delayed by DELAY-IN-SECONDS.
+
+CONTENT should be a mode-line construct (e.g., a symbol or `:eval' form).
+DEFAULT-TEXT is displayed until the idle timer fires and CONTENT is evaluated.
 
 Argument KEYWORDS is a property list of optional keywords:
 
