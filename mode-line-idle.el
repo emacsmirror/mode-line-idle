@@ -42,7 +42,7 @@ Behavior matches `mode-line-format', see its doc-string for details."
   ;; - Other lists: element-wise processed with `mode-line-idle--tree-to-string'
   ;; - A string is passed through (with any associated properties).
   ;; - A nil value is treated as an empty string.
-  ;; - A symbol, it's value will be passed to `mode-line-idle--tree-to-string'.
+  ;; - A symbol, its value will be passed to `mode-line-idle--tree-to-string'.
   ;; - Any other element is converted into a string using `prin1-to-string'.
 
   (declare (important-return-value t))
