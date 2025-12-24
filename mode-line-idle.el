@@ -69,7 +69,7 @@ Behavior matches `mode-line-format', see its doc-string for details."
         (mode-line-idle--tree-to-string (eval (cons 'progn (cdr tree)) t)))
        ((eq tree-type :propertize)
         (pcase-let ((`(,item . ,rest) (cdr tree)))
-          (apply #'propertize (cons (mode-line-idle--tree-to-string item) rest))))
+          (apply #'propertize (mode-line-idle--tree-to-string item) rest)))
        ;; Support cons-cell (integer rest), where the integer pads/truncates the string length.
        ((integerp tree-type)
         (let* ((value (mode-line-idle--tree-to-string (cdr tree)))
