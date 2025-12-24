@@ -22,11 +22,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  ;; For `pcase-dolist'.
-  (require 'pcase))
-
-
 ;; ---------------------------------------------------------------------------
 ;; Generic Utility Functions
 
