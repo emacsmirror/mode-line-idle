@@ -229,11 +229,11 @@ Argument KEYWORDS is a property list of optional keywords:
 
   ;; Check if this is running within `mode-line-idle--timer-callback'.
   (unless mode-line-idle--timer-lock
+    ;; Normalize to float before lookup so integer and float delays match.
+    (unless (floatp delay-in-seconds)
+      (setq delay-in-seconds (float delay-in-seconds)))
     (let ((item (assoc delay-in-seconds mode-line-idle--timers)))
       (unless item
-        ;; Use a float so `equal' comparisons can be used when the input is an int.
-        (unless (floatp delay-in-seconds)
-          (setq delay-in-seconds (float delay-in-seconds)))
         (setq item (cons delay-in-seconds (list)))
         ;; Since this is a one-off timer, no need to manage, fire and forget.
         (run-with-idle-timer delay-in-seconds nil #'mode-line-idle--timer-callback
