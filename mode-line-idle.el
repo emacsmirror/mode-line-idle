@@ -134,15 +134,16 @@ Return non-nil when any values were calculated."
         (let ((kw-iter keywords))
           (while kw-iter
             (let ((key (car kw-iter)))
-              (unless (setq kw-iter (cdr kw-iter))
-                (message "Error, key has no value: %S" key))
+              (setq kw-iter (cdr kw-iter))
               (cond
+               ((null kw-iter)
+                (message "mode-line-idle: keyword %S has no value" key))
                ((eq key :interrupt)
                 (setq kw-interrupt (car kw-iter)))
                ((eq key :literal)
                 (setq kw-literal (car kw-iter)))
                (t
-                (message "Error, unknown property for `mode-line-idle' found: %S" key)))
+                (message "mode-line-idle: unknown keyword %S" key)))
               (setq kw-iter (cdr kw-iter)))))
 
         (when force
