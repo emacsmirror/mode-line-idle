@@ -163,7 +163,7 @@ Return non-nil when any values were calculated."
 
             ;; Execution was interrupted, re-run later.
             (unless value
-              (let ((default-text (cdr (assq content mode-line-idle--values))))
+              (let ((default-text (alist-get content mode-line-idle--values)))
                 ;; Build a list with cons, add it to `interrupt-args'
                 (push
                  (cons (car item) (cons content (cons default-text keywords))) interrupt-args))))
@@ -250,7 +250,7 @@ Argument KEYWORDS is a property list of optional keywords:
         (setcdr item content-alist))))
 
   ;; Return the cached value.
-  (let ((value (cdr (assq content mode-line-idle--values))))
+  (let ((value (alist-get content mode-line-idle--values)))
     (or value default-text)))
 
 ;;;###autoload
