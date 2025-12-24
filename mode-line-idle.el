@@ -152,7 +152,14 @@ Return non-nil when any values were calculated."
            (kw-interrupt
             (unless has-input
               (while-no-input
-                (setq value (mode-line-idle--tree-to-string content)))
+                ;; Wrap in condition-case so an error in one mode-line
+                ;; component does not break others.
+                (condition-case-unless-debug err
+                    (setq value (mode-line-idle--tree-to-string content))
+                  (error
+                   (message "mode-line-idle: %S" err)
+                   ;; Verbose since mode-line functions should never raise errors.
+                   (setq value "<ERROR>"))))
               (unless value
                 (setq has-input t)))
 
@@ -165,7 +172,12 @@ Return non-nil when any values were calculated."
 
            ;; Default execution.
            (t
-            (setq value (mode-line-idle--tree-to-string content))))
+            (condition-case-unless-debug err
+                (setq value (mode-line-idle--tree-to-string content))
+              (error
+               (message "mode-line-idle: %S" err)
+               ;; Verbose since mode-line functions should never raise errors.
+               (setq value "<ERROR>")))))
 
           ;; May be nil when interrupted.
           (when value
