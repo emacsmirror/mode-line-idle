@@ -5,7 +5,7 @@ Mode Line Idle
 Simple delayed text evaluation for the mode-line.
 
 This package provides a convenient way to defer text evaluation in a way that can be
-easily integrated into existing mode-line's without requiring a minor mode or configuration.
+easily integrated into existing mode-lines without requiring a minor mode or configuration.
 
 Available via `melpa <https://melpa.org/#/mode-line-idle>`__.
 
@@ -28,13 +28,13 @@ To use ``mode-line-idle`` you will need to set ``mode-line-format`` using ``eval
 
 The function signature is:
 
-``(mode-line-idle delay content default-text &rest keywords)``
+``(mode-line-idle delay-in-seconds content default-text &rest keywords)``
 
 :delay:
    The number of seconds to delay evaluation once Emacs is idle.
 :content:
    The text to evaluate which can be a tree that gets converted into a string,
-   this takes on a similar for to ``mode-line-format`` (more on this below).
+   this takes on a similar form to ``mode-line-format`` (more on this below).
 :default-text:
    The text to show before the value has been computed.
 
@@ -101,8 +101,8 @@ Utility Functions
 ``(mode-line-idle-force-update &optional delay-in-seconds)``
    Calculate pending ``mode-line-idle`` items immediately.
 
-   When ``delay-in-seconds`` nil or omitted - update everything.
-   Otherwise skip items with an idle time over this value.
+   When ``delay-in-seconds`` is nil or omitted, update everything.
+   Otherwise only update items with an idle time less than or equal to this value.
 
 
 Installation
