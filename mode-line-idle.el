@@ -119,7 +119,8 @@ Return non-nil when any values were calculated."
   (declare (important-return-value nil))
   (let ((found nil)
         (has-input nil)
-        (interrupt-args (list)))
+        (interrupt-args (list))
+        (value-error "<ERROR>"))
     (pcase-dolist (`(,content . ,keywords) (cdr item))
       ;; Arguments which may be set from `keywords'.
       (let ((kw-interrupt nil)
@@ -154,12 +155,13 @@ Return non-nil when any values were calculated."
               (while-no-input
                 ;; Wrap in condition-case so an error in one mode-line
                 ;; component does not break others.
-                (condition-case-unless-debug err
-                    (setq value (mode-line-idle--tree-to-string content))
-                  (error
-                   (message "mode-line-idle: %S" err)
-                   ;; Verbose since mode-line functions should never raise errors.
-                   (setq value "<ERROR>"))))
+                (setq value
+                      (condition-case-unless-debug err
+                          (mode-line-idle--tree-to-string content)
+                        (error
+                         (message "mode-line-idle: %s" (error-message-string err))
+                         ;; Verbose since mode-line functions should never raise errors.
+                         value-error))))
               (unless value
                 (setq has-input t)))
 
@@ -172,12 +174,13 @@ Return non-nil when any values were calculated."
 
            ;; Default execution.
            (t
-            (condition-case-unless-debug err
-                (setq value (mode-line-idle--tree-to-string content))
-              (error
-               (message "mode-line-idle: %S" err)
-               ;; Verbose since mode-line functions should never raise errors.
-               (setq value "<ERROR>")))))
+            (setq value
+                  (condition-case-unless-debug err
+                      (mode-line-idle--tree-to-string content)
+                    (error
+                     (message "mode-line-idle: %s" (error-message-string err))
+                     ;; Verbose since mode-line functions should never raise errors.
+                     value-error)))))
 
           ;; May be nil when interrupted.
           (when value
