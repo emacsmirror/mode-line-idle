@@ -215,9 +215,9 @@ Return non-nil when any values were calculated."
   ;; and the variables are local.
   (when (buffer-live-p buf)
     (with-current-buffer buf
-      (mode-line-idle--timer-callback-impl item nil)
-      ;; Remove this item.
-      (setq mode-line-idle--timers (delq item mode-line-idle--timers)))))
+      ;; Remove first, otherwise interrupted values re-use it when re-running `mode-line-idle'.
+      (setq mode-line-idle--timers (delq item mode-line-idle--timers))
+      (mode-line-idle--timer-callback-impl item nil))))
 
 
 ;; ---------------------------------------------------------------------------
