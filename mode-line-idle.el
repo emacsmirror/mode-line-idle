@@ -57,8 +57,8 @@ Behavior matches `mode-line-format', see its doc-string for details."
    ((symbolp tree)
     ;; Support non-string symbols, allows numbers etc to be included.
     (mode-line-idle--tree-to-string (symbol-value tree)))
-   ((listp tree)
-    (let ((tree-type (car-safe tree)))
+   ((consp tree)
+    (let ((tree-type (car tree)))
       (cond
        ((eq tree-type :eval)
         (mode-line-idle--tree-to-string (eval (cons 'progn (cdr tree)) t)))
