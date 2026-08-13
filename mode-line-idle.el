@@ -256,8 +256,7 @@ Argument KEYWORDS is a property list of optional keywords:
         (setcdr item content-alist))))
 
   ;; Return the cached value.
-  (let ((value (alist-get content mode-line-idle--values)))
-    (or value default-text)))
+  (alist-get content mode-line-idle--values default-text))
 
 ;;;###autoload
 (defun mode-line-idle-force-update (&optional delay-in-seconds)
