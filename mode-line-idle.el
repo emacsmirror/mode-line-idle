@@ -102,6 +102,17 @@ Behavior matches `mode-line-format', see its doc-string for details."
 ;; ---------------------------------------------------------------------------
 ;; Internal Functions
 
+(defun mode-line-idle--tree-to-string-no-error (tree)
+  "Convert TREE to a string, returning a placeholder on error.
+Errors in one mode-line component must not break others."
+  (declare (important-return-value t))
+  (condition-case-unless-debug err
+      (mode-line-idle--tree-to-string tree)
+    (error
+     (message "mode-line-idle: %s" (error-message-string err))
+     ;; Verbose since mode-line functions should never raise errors.
+     "<ERROR>")))
+
 (defun mode-line-idle--update-and-redisplay ()
   "Refresh the mode-line after refreshing its contents."
   (declare (important-return-value nil))
@@ -119,8 +130,7 @@ Return non-nil when any values were calculated."
   (declare (important-return-value nil))
   (let ((found nil)
         (has-input nil)
-        (interrupt-args (list))
-        (value-error "<ERROR>"))
+        (interrupt-args (list)))
     (pcase-dolist (`(,content . ,keywords) (cdr item))
       ;; Arguments which may be set from `keywords'.
       (let ((kw-interrupt nil)
@@ -153,15 +163,7 @@ Return non-nil when any values were calculated."
            (kw-interrupt
             (unless has-input
               (while-no-input
-                ;; Wrap in condition-case so an error in one mode-line
-                ;; component does not break others.
-                (setq value
-                      (condition-case-unless-debug err
-                          (mode-line-idle--tree-to-string content)
-                        (error
-                         (message "mode-line-idle: %s" (error-message-string err))
-                         ;; Verbose since mode-line functions should never raise errors.
-                         value-error))))
+                (setq value (mode-line-idle--tree-to-string-no-error content)))
               (unless value
                 (setq has-input t)))
 
@@ -174,13 +176,7 @@ Return non-nil when any values were calculated."
 
            ;; Default execution.
            (t
-            (setq value
-                  (condition-case-unless-debug err
-                      (mode-line-idle--tree-to-string content)
-                    (error
-                     (message "mode-line-idle: %s" (error-message-string err))
-                     ;; Verbose since mode-line functions should never raise errors.
-                     value-error)))))
+            (setq value (mode-line-idle--tree-to-string-no-error content))))
 
           ;; May be nil when interrupted.
           (when value
